@@ -1,10 +1,8 @@
 import { Router } from "express";
-
+import login from "../controllers/login.js";
 const router = Router();
 
 
-router.get("/", (req, res) => {
-  res.send("Welcome to User Router");
-});
+router.post("/login", login);
 
 export default router;
