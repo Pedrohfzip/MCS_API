@@ -1,17 +1,11 @@
 {
   "development": {
-    "username": "neondb_owner",
-    "password": "npg_DFOdm6g7cSvp",
-    "database": "neondb",
-    "host": "ep-dawn-sea-aetl8sy4-pooler.c-2.us-east-2.aws.neon.tech",
+    "username": "postgres",
+    "password": "123",
+    "database": "managementCars",
+    "host": "localhost",
     "port": 5432,
-    "dialect": "postgres",
-    "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
-    }
+    "dialect": "postgres"
   },
   "test": {
     "username": "neondb_owner",
