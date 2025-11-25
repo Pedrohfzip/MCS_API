@@ -3,6 +3,7 @@
 
 
 import users from '../database/models/User.js';
+import bcrypt from 'bcryptjs';
 
 const loginController = {
 	// Login do usuário
@@ -12,8 +13,22 @@ const loginController = {
 		if (!email || !senha) {
 			return res.status(400).json({ erro: 'Email e senha são obrigatórios.' });
 		}
-		// Lógica de autenticação aqui
-		return res.status(200).json({ mensagem: 'Login recebido com sucesso', email });
+		try {
+			// Busca usuário pelo email
+			const usuario = await users.findOne({ where: { email } });
+			if (!usuario) {
+				return res.status(404).json({ erro: 'Usuário não encontrado.' });
+			}
+			// Compara senha
+			const senhaValida = await bcrypt.compare(senha, usuario.password);
+			if (!senhaValida) {
+				return res.status(401).json({ erro: 'Senha incorreta.' });
+			}
+			// Autenticação bem-sucedida
+			return res.status(200).json({ mensagem: 'Login realizado com sucesso', usuario: { id: usuario.id, email: usuario.email, name: usuario.name } });
+		} catch (error) {
+			return res.status(500).json({ erro: 'Erro ao autenticar usuário.' });
+		}
 	},
 
 	// Cadastro de usuário
@@ -25,8 +40,11 @@ const loginController = {
 			return res.status(400).json({ erro: 'Email e senha são obrigatórios.' });
 		}
 		try {
+			// Criptografa a senha antes de salvar
+			const salt = await bcrypt.genSalt(10);
+			const hash = await bcrypt.hash(senha, salt);
 			// Cria o usuário na tabela User
-			const novoUsuario = await users.create({ name, email, password: senha });
+			const novoUsuario = await users.create({ name, email, password: hash });
 			if (!novoUsuario) {
 				return res.status(500).json({ erro: 'Erro ao cadastrar usuário.' });
 			}
@@ -36,6 +54,17 @@ const loginController = {
 				return res.status(409).json({ erro: 'Email já cadastrado.' });
 			}
 			return res.status(500).json({ erro: error });
+		}
+	},
+
+
+	// Excluir todos os usuários
+	async deleteUser(req, res) {
+		try {
+			const deleted = await users.destroy({ where: {}, truncate: true });
+			return res.status(200).json({ mensagem: 'Todos os usuários foram excluídos.' });
+		} catch (error) {
+			return res.status(500).json({ erro: 'Erro ao excluir usuários.' });
 		}
 	}
 };
