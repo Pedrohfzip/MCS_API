@@ -4,8 +4,19 @@
 
 import users from '../database/models/User.js';
 import bcrypt from 'bcryptjs';
+import { generateAccessToken, generateRefreshToken } from '../services/generateToken.js';
 
 const loginController = {
+
+
+	async getAllUsers(req, res) {
+		try {
+			const allUsers = await users.findAll({});
+			return res.status(200).json(allUsers);
+		} catch (error) {
+			return res.status(500).json({ erro: 'Erro ao buscar usuários.' });
+		}
+	},
 	// Login do usuário
 	async login(req, res) {
 		console.log(req.body);
@@ -15,17 +26,33 @@ const loginController = {
 		}
 		try {
 			// Busca usuário pelo email
-			const usuario = await users.findOne({ where: { email } });
-			if (!usuario) {
+			const user = await users.findOne({ where: { email } });
+			if (!user) {
 				return res.status(404).json({ erro: 'Usuário não encontrado.' });
 			}
 			// Compara senha
-			const senhaValida = await bcrypt.compare(senha, usuario.password);
+			const senhaValida = await bcrypt.compare(senha, user.password);
 			if (!senhaValida) {
 				return res.status(401).json({ erro: 'Credenciais inválidas.' });
 			}
+			const accessToken = generateAccessToken(user);
+  			const refreshToken = generateRefreshToken(user);
+			res.cookie("accessToken", accessToken, {
+				httpOnly: true,
+				secure: false, // TRUE em produção
+				sameSite: "strict",
+				path: "/",
+				maxAge: 1000 * 60 * 15
+			});
+			  res.cookie("refreshToken", refreshToken, {
+				httpOnly: true,
+				secure: false,
+				sameSite: "strict",
+				path: "/",
+				maxAge: 1000 * 60 * 60 * 24 * 7
+			});
 			// Autenticação bem-sucedida
-			return res.status(200).json({ message: 'Login realizado com sucesso', usuario: { id: usuario.id, email: usuario.email, name: usuario.name } });
+			return res.status(200).json({ message: 'Login realizado com sucesso', usuario: { id: user.id, email: user.email, name: user.name } });
 		} catch (error) {
 			return res.status(500).json({ erro: 'Credenciais inválidas.' });
 		}
