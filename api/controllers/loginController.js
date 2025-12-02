@@ -22,12 +22,12 @@ const loginController = {
 			// Compara senha
 			const senhaValida = await bcrypt.compare(senha, usuario.password);
 			if (!senhaValida) {
-				return res.status(401).json({ erro: 'Senha incorreta.' });
+				return res.status(401).json({ erro: 'Credenciais inválidas.' });
 			}
 			// Autenticação bem-sucedida
-			return res.status(200).json({ mensagem: 'Login realizado com sucesso', usuario: { id: usuario.id, email: usuario.email, name: usuario.name } });
+			return res.status(200).json({ message: 'Login realizado com sucesso', usuario: { id: usuario.id, email: usuario.email, name: usuario.name } });
 		} catch (error) {
-			return res.status(500).json({ erro: 'Erro ao autenticar usuário.' });
+			return res.status(500).json({ erro: 'Credenciais inválidas.' });
 		}
 	},
 
