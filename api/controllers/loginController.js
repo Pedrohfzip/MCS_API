@@ -93,7 +93,8 @@ const loginController = {
 		} catch (error) {
 			return res.status(500).json({ erro: 'Erro ao excluir usuários.' });
 		}
-	}
+	},
+
 };
 
 export default loginController;
