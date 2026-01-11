@@ -9,5 +9,6 @@ function authMiddleware(req, res, next) {
     req.user = user;
     next();
   });
+  return;
 }
 export default authMiddleware;

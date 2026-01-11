@@ -17,4 +17,18 @@ function generateRefreshToken(user) {
   );
 }
 
-export { generateAccessToken, generateRefreshToken };
+function deleteTokens(res) {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+  });
+
+}
+
+export { generateAccessToken, generateRefreshToken, deleteTokens };
