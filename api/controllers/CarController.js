@@ -4,13 +4,12 @@ import Car from '../database/models/Car.js';
 const CarController = {
   // Criar um novo carro
   async create(req, res) {
-    const { name, brand, year, photo } = req.body;
-    console.log(name, brand, year);
-    if (!name || !brand || !year) {
-      return res.status(400).json({ erro: 'Name, brand, and year are required.' });
+    const { name, brand, year, photo, gas, color, km } = req.body;
+    if (!name || !brand || !year || !gas || !color || km === undefined) {
+      return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
     }
     try {
-      const novoCarro = await Car.create({ name, brand, year });
+      const novoCarro = await Car.create({ name, brand, year, gas, color, km });
       if (!novoCarro) {
         return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
       }
