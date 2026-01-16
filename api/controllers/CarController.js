@@ -4,21 +4,28 @@ import Car from '../database/models/Car.js';
 const CarController = {
   // Criar um novo carro
   async create(req, res) {
-    const { name, brand, year, photo, gas, color, km } = req.body;
-    console.log(req.body);
-    // if (!name || !brand || !year || !gas || !color || km === undefined) {
-    //   return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
-    // }
-    // try {
-    //   const novoCarro = await Car.create({ name, brand, year, gas, color, km });
-    //   if (!novoCarro) {
-    //     return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
-    //   }
-    //   return res.status(200).json({ mensagem: 'Carro cadastrado com sucesso', carro: novoCarro });
-    // } catch (error) {
-    //   console.log(error);
-    //   return res.status(500).json({ erro: error.message || 'Erro ao cadastrar carro.' });
-    // }
+    // Os dados vêm como string do FormData, então converta se necessário
+    const name = req.body.name;
+    const brand = req.body.brand;
+    const year = req.body.year ? Number(req.body.year) : undefined;
+    const gas = req.body.gas;
+    const color = req.body.color;
+    const km = req.body.km ? Number(req.body.km) : undefined;
+    const photo = req.file ? req.file.key : null;
+
+    if (!name || !brand || !year || !gas || !color || km === undefined) {
+      return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
+    }
+    try {
+      const novoCarro = await Car.create({ name, brand, year, gas, color, km, photo });
+      if (!novoCarro) {
+        return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
+      }
+      return res.status(200).json({ mensagem: 'Carro cadastrado com sucesso', carro: novoCarro });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ erro: error.message || 'Erro ao cadastrar carro.' });
+    }
   },
   // Listar todos os carros
   async getAllCars(req, res) {
