@@ -5,13 +5,15 @@ const CarController = {
   // Criar um novo carro
   async create(req, res) {
     // Os dados vêm como string do FormData, então converta se necessário
+
+    console.log(req.file);
     const name = req.body.name;
     const brand = req.body.brand;
     const year = req.body.year ? Number(req.body.year) : undefined;
     const gas = req.body.gas;
     const color = req.body.color;
     const km = req.body.km ? Number(req.body.km) : undefined;
-    const photo = req.file ? req.file.key : null;
+    const photo = req.file ? req.file.location : null;
 
     if (!name || !brand || !year || !gas || !color || km === undefined) {
       return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
@@ -31,6 +33,7 @@ const CarController = {
   async getAllCars(req, res) {
     try {
       const cars = await Car.findAll();
+      console.log(cars);
       return res.status(200).json(cars);
     } catch (error) {
       console.log(error);
