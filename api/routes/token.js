@@ -1,4 +1,6 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
+import { generateAccessToken, generateRefreshToken } from "../services/generateToken.js";
 const router = Router();
 
 router.post("/refresh", (req, res) => {
@@ -10,7 +12,8 @@ router.post("/refresh", (req, res) => {
     if (err) 
       return res.status(403).json({ erro: "Refresh inválido" });
 
-    const newAccess = generateAccessToken({ id: user.id });
+    // Garante que o payload tenha email, se disponível
+    const newAccess = generateAccessToken({ id: user.id, email: user.email });
 
     res.cookie("accessToken", newAccess, {
       httpOnly: true,

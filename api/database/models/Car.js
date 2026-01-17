@@ -23,6 +23,22 @@ const Car = sequelize.define('Car', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  gas: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  color: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  km: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.NUMBER,
+    allowNull: true,
+  },
 }, {
   tableName: 'cars',
   timestamps: true,

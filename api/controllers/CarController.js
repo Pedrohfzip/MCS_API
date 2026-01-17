@@ -14,12 +14,13 @@ const CarController = {
     const color = req.body.color;
     const km = req.body.km ? Number(req.body.km) : undefined;
     const photo = req.file ? req.file.location : null;
+    const price = req.body.price ? Number(req.body.price) : null;
 
     if (!name || !brand || !year || !gas || !color || km === undefined) {
       return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
     }
     try {
-      const novoCarro = await Car.create({ name, brand, year, gas, color, km, photo });
+      const novoCarro = await Car.create({ name, brand, year, gas, color, km, photo, price });
       if (!novoCarro) {
         return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
       }
@@ -38,6 +39,19 @@ const CarController = {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ erro: error.message || 'Erro ao buscar carros.' });
+    }
+  },
+  async getCarById(req, res) {
+    const carId = req.params.id;
+    try {
+      const car = await Car.findByPk(carId);
+      if (!car) {
+        return res.status(404).json({ erro: 'Carro não encontrado.' });
+      }
+      return res.status(200).json(car);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ erro: error.message || 'Erro ao buscar carro.' });
     }
   },
   // ... outras funções podem ser adicionadas aqui
