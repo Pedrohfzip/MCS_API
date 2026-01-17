@@ -7,4 +7,6 @@ const router = Router();
 router.get('/getAllCars', CarController.getAllCars);
 router.post('/createCar', authMiddleware, upload.single('imagem'), CarController.create);
 router.get('/getCar/:id', CarController.getCarById);
+router.put('/editCar/:id', authMiddleware, upload.single('imagem'), CarController.update);
+router.delete('/deleteCar/:id', authMiddleware, CarController.delete);
 export default router;

@@ -54,7 +54,51 @@ const CarController = {
       return res.status(500).json({ erro: error.message || 'Erro ao buscar carro.' });
     }
   },
-  // ... outras funções podem ser adicionadas aqui
+  // Editar um carro
+  async update(req, res) {
+    const carId = req.params.id;
+    const { name, brand, year, gas, color, km, price } = req.body;
+    const photo = req.file ? req.file.location : undefined;
+
+    try {
+      const car = await Car.findByPk(carId);
+      if (!car) {
+        return res.status(404).json({ erro: 'Carro não encontrado.' });
+      }
+
+      await car.update({
+        name: name ?? car.name,
+        brand: brand ?? car.brand,
+        year: year ? Number(year) : car.year,
+        gas: gas ?? car.gas,
+        color: color ?? car.color,
+        km: km ? Number(km) : car.km,
+        price: price ? Number(price) : car.price,
+        photo: photo ?? car.photo,
+      });
+
+      return res.status(200).json({ mensagem: 'Carro atualizado com sucesso', carro: car });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ erro: error.message || 'Erro ao atualizar carro.' });
+    }
+  },
+
+  // Excluir um carro
+  async delete(req, res) {
+    const carId = req.params.id;
+    try {
+      const car = await Car.findByPk(carId);
+      if (!car) {
+        return res.status(404).json({ erro: 'Carro não encontrado.' });
+      }
+      await car.destroy();
+      return res.status(200).json({ mensagem: 'Carro excluído com sucesso' });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ erro: error.message || 'Erro ao excluir carro.' });
+    }
+  },
 };
 
 export default CarController;
