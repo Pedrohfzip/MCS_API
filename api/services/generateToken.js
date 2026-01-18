@@ -13,7 +13,7 @@ function generateRefreshToken(user) {
   return jwt.sign(
     { id: user.id },
     "REFRESH_SECRET",
-    { expiresIn: "1h" }
+    { expiresIn: "1min" }
   );
 }
 

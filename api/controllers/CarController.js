@@ -1,8 +1,35 @@
+
 import Car from '../database/models/Car.js';
+import { Op } from 'sequelize';
 
 
 const CarController = {
-  // Criar um novo carro
+  // Buscar carros por qualquer campo dinâmico
+  async search(req, res) {
+      const { data } = req.query;
+      if (!data) {
+        return res.status(400).json({ erro: 'O parâmetro data é obrigatório.' });
+      }
+
+      // Busca por múltiplos campos
+      const where = {
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${data}%` } },
+          { brand: { [Op.iLike]: `%${data}%` } },
+          { gas: { [Op.iLike]: `%${data}%` } },
+          { color: { [Op.iLike]: `%${data}%` } },
+          // Busca exata para ano se for número
+          ...(Number.isInteger(Number(data)) ? [{ year: Number(data) }] : [])
+        ]
+      };
+      try {
+        const cars = await Car.findAll({ where });
+        return res.status(200).json(cars);
+      } catch (error) {
+        console.log(error);
+        return res.status(500).json({ erro: error.message || 'Erro ao buscar carros.' });
+      }
+  },
   async create(req, res) {
     // Os dados vêm como string do FormData, então converta se necessário
 

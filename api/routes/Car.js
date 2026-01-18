@@ -5,6 +5,7 @@ import upload from "../middlaware/uploadImage.js";
 const router = Router();
 
 router.get('/getAllCars', CarController.getAllCars);
+router.get('/search', CarController.search);
 router.post('/createCar', authMiddleware, upload.single('imagem'), CarController.create);
 router.get('/getCar/:id', CarController.getCarById);
 router.put('/editCar/:id', authMiddleware, upload.single('imagem'), CarController.update);
