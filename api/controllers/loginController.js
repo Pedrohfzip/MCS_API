@@ -17,6 +17,39 @@ const loginController = {
 			return res.status(500).json({ erro: 'Erro ao buscar usuários.' });
 		}
 	},
+	async getUserById(req, res) {
+		const userId = req.params.id;
+		try {
+			const user = await users.findByPk(userId);
+			if (!user) {
+				return res.status(404).json({ erro: 'Usuário não encontrado.' });
+			}
+			return res.status(200).json(user);
+		} catch (error) {
+			return res.status(500).json({ erro: error.message || 'Erro ao buscar usuário.' });
+		}
+	},
+	async searchUsers(req, res) {
+      const { data } = req.query;
+      if (!data) {
+        return res.status(400).json({ erro: 'O parâmetro data é obrigatório.' });
+      }
+
+			// Busca usuários por nome ou email (case-insensitive)
+			const { Op } = await import('sequelize');
+			const where = {
+				[Op.or]: [
+					{ name: { [Op.iLike]: `%${data}%` } },
+					{ email: { [Op.iLike]: `%${data}%` } }
+				]
+			};
+			try {
+				const foundUsers = await users.findAll({ where });
+				return res.status(200).json(foundUsers);
+			} catch (error) {
+				return res.status(500).json({ erro: error.message || 'Erro ao buscar usuários.' });
+			}
+	},
 	// Login do usuário
 	async login(req, res) {
 

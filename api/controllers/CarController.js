@@ -1,7 +1,7 @@
 
 import Car from '../database/models/Car.js';
 import CarImage from '../database/models/CarImage.js';
-import { Op } from 'sequelize';
+import { Op, where } from 'sequelize';
 
 
 const CarController = {
@@ -43,32 +43,52 @@ const CarController = {
     if (!name || !brand || !year || !gas || !color || km === undefined) {
       return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
     }
+    console.log("Arquivos recebidos:", req.files);
     try {
       // Cria o carro sem foto
       const novoCarro = await Car.create({ name, brand, year, gas, color, km, price });
       if (!novoCarro) {
         return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
       }
+      console.log("Novo carro criado:", novoCarro);
 
       // Salva cada imagem na tabela CarImage
-      if (req.files && req.files.length > 0) {
-        const carImages = req.files.map(file => ({
-          imageUrl: file.location,
-          carId: novoCarro.id,
-        }));
-        await CarImage.create(carImages);
-      }
 
-      return res.status(200).json({ mensagem: 'Carro cadastrado com sucesso', carro: novoCarro });
-    } catch (error) {
+        const carImages = await Promise.all(
+          req.files.map(async (file) => {
+            return await CarImage.create({ imageUrl: file.location, carId: novoCarro.id });
+          })
+        );
+        console.log("Imagens do carro salvas:", carImages);
+        return res.status(200).json({ mensagem: 'Carro cadastrado com sucesso', carro: novoCarro });
+      } catch (error) {
       return res.status(500).json({ erro: error.message || 'Erro ao cadastrar carro.' });
     }
   },
   // Listar todos os carros
   async getAllCars(req, res) {
     try {
-      const cars = await Car.findAll();
-      return res.status(200).json(cars);
+      let cars = await Car.findAll();
+      const images = await CarImage.findAll({
+        where: {
+          carId: { [Op.in]: cars.map(car => car.id) }
+        }
+      });
+      // Cria um mapa de imagens por carId
+      const imagesByCarId = images.reduce((acc, img) => {
+        if (!acc[img.carId]) acc[img.carId] = [];
+        acc[img.carId].push(img);
+        return acc;
+      }, {});
+      // Adiciona a propriedade images em cada carro
+      const carsWithImages = cars.map(car => {
+        const carObj = car.toJSON ? car.toJSON() : car;
+        return {
+          ...carObj,
+          images: imagesByCarId[car.id] || []
+        };
+      });
+      return res.status(200).json(carsWithImages);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ erro: error.message || 'Erro ao buscar carros.' });
@@ -81,7 +101,9 @@ const CarController = {
       if (!car) {
         return res.status(404).json({ erro: 'Carro não encontrado.' });
       }
-      return res.status(200).json(car);
+      const images = await CarImage.findAll({ where: { carId: car.id } });
+      const carObj = car.toJSON ? car.toJSON() : car;
+      return res.status(200).json({ ...carObj, images });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ erro: error.message || 'Erro ao buscar carro.' });

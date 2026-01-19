@@ -30,12 +30,12 @@ const CarImage = sequelize.define('CarImage', {
     allowNull: false,
   },
 }, {
-  tableName: 'CarImages',
+  tableName: 'CarImage',
   timestamps: true,
 });
 
 CarImage.associate = function(models) {
-  CarImage.belongsTo(models.Car, {
+  CarImage.belongsTo(models.cars, {
     foreignKey: 'carId',
     as: 'car',
     onDelete: 'CASCADE',
