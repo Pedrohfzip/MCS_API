@@ -43,14 +43,14 @@ const CarController = {
     if (!name || !brand || !year || !gas || !color || km === undefined) {
       return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
     }
-    console.log("Arquivos recebidos:", req.files);
+
     try {
       // Cria o carro sem foto
       const novoCarro = await Car.create({ name, brand, year, gas, color, km, price });
       if (!novoCarro) {
         return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
       }
-      console.log("Novo carro criado:", novoCarro);
+
 
       // Salva cada imagem na tabela CarImage
 
@@ -59,7 +59,7 @@ const CarController = {
             return await CarImage.create({ imageUrl: file.location, carId: novoCarro.id });
           })
         );
-        console.log("Imagens do carro salvas:", carImages);
+
         return res.status(200).json({ mensagem: 'Carro cadastrado com sucesso', carro: novoCarro });
       } catch (error) {
       return res.status(500).json({ erro: error.message || 'Erro ao cadastrar carro.' });
@@ -152,6 +152,26 @@ const CarController = {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ erro: error.message || 'Erro ao excluir carro.' });
+    }
+  },
+
+  // Excluir imagem de carro
+  async deleteCarImage(req, res) {
+    console.log(req.params);
+    const { carId, imageId } = req.params;
+    if (!carId || !imageId) {
+      return res.status(400).json({ erro: 'Parâmetros carId e imageId são obrigatórios.' });
+    }
+    try {
+      const image = await CarImage.findOne({ where: { id: imageId, carId: carId } });
+      if (!image) {
+        return res.status(404).json({ erro: 'Imagem não encontrada para este carro.' });
+      }
+      await image.destroy();
+      return res.status(200).json({ mensagem: 'Imagem excluída com sucesso' });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ erro: error.message || 'Erro ao excluir imagem.' });
     }
   },
 };

@@ -10,4 +10,6 @@ router.post('/createCar', authMiddleware, upload.array('imagens'), CarController
 router.get('/getCar/:id', CarController.getCarById);
 router.put('/editCar/:id', authMiddleware, upload.array('imagens'), CarController.update);
 router.delete('/deleteCar/:id', authMiddleware, CarController.delete);
+// Excluir imagem de carro por id
+router.delete('/deleteCarImage/:carId/:imageId', authMiddleware, CarController.deleteCarImage);
 export default router;
