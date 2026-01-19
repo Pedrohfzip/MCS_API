@@ -19,7 +19,7 @@ const loginController = {
 	},
 	// Login do usuário
 	async login(req, res) {
-		console.log(req.body);
+
 		const { email, senha } = req.body;
 		if (!email || !senha) {
 			return res.status(400).json({ erro: 'Email e senha são obrigatórios.' });
@@ -60,7 +60,6 @@ const loginController = {
 
 	// Cadastro de usuário
 	async register(req, res) {
-		console.log(req.body);
 		const {email, senha, name } = req.body;
 		console.log('Dados recebidos para registro:', { email, senha });
 		if (!email || !senha) {
