@@ -7,25 +7,49 @@ import { Op, where } from 'sequelize';
 const CarController = {
   // Buscar carros por qualquer campo dinâmico
   async search(req, res) {
-      const { data } = req.query;
-      if (!data) {
-        return res.status(400).json({ erro: 'O parâmetro data é obrigatório.' });
+      // Suporte a múltiplos filtros: ?name=Corolla&brand=Toyota&year=2022 OU ?data=Corolla Toyota
+      const { name, brand, year, data } = req.query;
+      console.log('Parâmetros de busca:', req.query);
+      let where = {};
+      if (data) {
+        // Busca por nome OU marca (OR)
+        where = {
+          [Op.or]: [
+            { name: { [Op.iLike]: `%${data}%` } },
+            { brand: { [Op.iLike]: `%${data}%` } }
+          ]
+        };
+      } else if (name || brand || year) {
+        // Busca combinada (AND) se vierem filtros separados
+        if (name) where.name = { [Op.iLike]: `%${name}%` };
+        if (brand) where.brand = { [Op.iLike]: `%${brand}%` };
+        if (year) where.year = Number(year);
+      } else {
+        return res.status(400).json({ erro: 'Informe pelo menos um filtro.' });
       }
-
-      // Busca por múltiplos campos
-      const where = {
-        [Op.or]: [
-          { name: { [Op.iLike]: `%${data}%` } },
-          { brand: { [Op.iLike]: `%${data}%` } },
-          { gas: { [Op.iLike]: `%${data}%` } },
-          { color: { [Op.iLike]: `%${data}%` } },
-          // Busca exata para ano se for número
-          ...(Number.isInteger(Number(data)) ? [{ year: Number(data) }] : [])
-        ]
-      };
       try {
         const cars = await Car.findAll({ where });
-        return res.status(200).json(cars);
+        // Busca imagens dos carros encontrados
+        const images = await CarImage.findAll({
+          where: {
+            carId: { [Op.in]: cars.map(car => car.id) }
+          }
+        });
+        // Cria um mapa de imagens por carId
+        const imagesByCarId = images.reduce((acc, img) => {
+          if (!acc[img.carId]) acc[img.carId] = [];
+          acc[img.carId].push(img);
+          return acc;
+        }, {});
+        // Adiciona a propriedade images em cada carro
+        const carsWithImages = cars.map(car => {
+          const carObj = car.toJSON ? car.toJSON() : car;
+          return {
+            ...carObj,
+            images: imagesByCarId[car.id] || []
+          };
+        });
+        return res.status(200).json(carsWithImages);
       } catch (error) {
         return res.status(500).json({ erro: error.message || 'Erro ao buscar carros.' });
       }
