@@ -93,7 +93,7 @@ const loginController = {
 
 	// Cadastro de usuário
 	async register(req, res) {
-		const {email, senha, name } = req.body;
+		const {email, senha, name, role } = req.body;
 		console.log('Dados recebidos para registro:', { email, senha });
 		if (!email || !senha) {
 			return res.status(400).json({ erro: 'Email e senha são obrigatórios.' });
@@ -103,7 +103,7 @@ const loginController = {
 			const salt = await bcrypt.genSalt(10);
 			const hash = await bcrypt.hash(senha, salt);
 			// Cria o usuário na tabela User
-			const novoUsuario = await users.create({ name, email, password: hash });
+			const novoUsuario = await users.create({ name, email, password: hash, role });
 			if (!novoUsuario) {
 				return res.status(500).json({ erro: 'Erro ao cadastrar usuário.' });
 			}
@@ -119,11 +119,19 @@ const loginController = {
 
 	// Excluir todos os usuários
 	async deleteUser(req, res) {
+		const { id } = req.params;
+		console.log('ID recebido para exclusão:', id);
+		if (!id) {
+			return res.status(400).json({ erro: 'ID é obrigatório.' });
+		}
 		try {
-			const deleted = await users.destroy({ where: {}, truncate: true });
-			return res.status(200).json({ mensagem: 'Todos os usuários foram excluídos.' });
+			const deleted = await users.destroy({ where: { uuid: id } });
+			if (deleted === 0) {
+				return res.status(404).json({ erro: 'Usuário não encontrado.' });
+			}
+			return res.status(200).json({ mensagem: 'Usuário excluído com sucesso.' });
 		} catch (error) {
-			return res.status(500).json({ erro: 'Erro ao excluir usuários.' });
+			return res.status(500).json({ erro: 'Erro ao excluir usuário.' });
 		}
 	},
 
