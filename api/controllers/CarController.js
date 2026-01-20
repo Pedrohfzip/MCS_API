@@ -137,7 +137,9 @@ const CarController = {
   async update(req, res) {
     const carId = req.params.id;
     const { name, brand, year, gas, color, km, price } = req.body;
-    const photo = req.file ? req.file.location : undefined;
+    // req.files pode conter múltiplas imagens
+    const newImages = req.files;
+    console.log('Dados para atualização:', req.body, 'Novas imagens:', newImages);
 
     try {
       const car = await Car.findByPk(carId);
@@ -153,10 +155,26 @@ const CarController = {
         color: color ?? car.color,
         km: km ? Number(km) : car.km,
         price: price ? Number(price) : car.price,
-        photo: photo ?? car.photo,
       });
 
-      return res.status(200).json({ mensagem: 'Carro atualizado com sucesso', carro: car });
+      // Se vieram novas imagens, substitui as antigas
+      if (newImages.length > 0) {
+        // Remove todas as imagens antigas desse carro
+        await CarImage.destroy({ where: { carId } });
+        // Adiciona as novas imagens
+        await Promise.all(
+          newImages.map(async (imageUrl) => {
+            console.log('Imagem adicionada:', imageUrl.location);
+            await CarImage.create({ imageUrl: imageUrl.location, carId });
+          })
+        );
+      }
+
+      // Busca o carro atualizado e suas imagens
+      const updatedCar = await Car.findByPk(carId);
+      const images = await CarImage.findAll({ where: { carId } });
+
+      return res.status(200).json({ mensagem: 'Carro atualizado com sucesso', carro: updatedCar, images });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ erro: error.message || 'Erro ao atualizar carro.' });
