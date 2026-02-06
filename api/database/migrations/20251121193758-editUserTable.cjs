@@ -4,7 +4,7 @@
 module.exports = {
   async up (queryInterface, Sequelize) {
     // Remove a coluna id
-    // await queryInterface.removeColumn('users', 'id');
+    await queryInterface.removeColumn('users', 'id');
     // Adiciona a coluna id como UUID
     await queryInterface.addColumn('users', 'uuid', {
       type: Sequelize.UUID,
@@ -18,12 +18,5 @@ module.exports = {
     // Remove a coluna id
     await queryInterface.removeColumn('users', 'id');
     // Adiciona a coluna id como INTEGER autoincremento
-    await queryInterface.addColumn('users', 'uuid', {
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
-      // allowNull: false,
-      primaryKey: true,
-      unique: true
-    });
   }
 };
