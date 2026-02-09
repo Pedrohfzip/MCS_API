@@ -5,8 +5,7 @@ import { Op, where } from 'sequelize';
 
 
 const CarController = {
-    // Buscar carros de um usuário específico pelo uuid
-    async getCarsByUserUuid(req, res) {
+  async getCarsByUserUuid(req, res) {
       const { uuid } = req.params;
       console.log('Requisição para buscar carros do usuário com UUID:', uuid);
       console.log('UUID recebido para busca de carros do usuário:', uuid);
@@ -41,8 +40,7 @@ const CarController = {
         console.log(error);
         return res.status(500).json({ erro: error.message || 'Erro ao buscar carros do usuário.' });
       }
-    },
-  // Buscar carros por qualquer campo dinâmico
+  },
   async search(req, res) {
       // Suporte a múltiplos filtros: ?name=Corolla&brand=Toyota&year=2022 OU ?data=Corolla Toyota
       const { name, brand, year, data } = req.query;
@@ -126,7 +124,6 @@ const CarController = {
       return res.status(500).json({ erro: error.message || 'Erro ao cadastrar carro.' });
     }
   },
-  // Listar todos os carros
   async getAllCars(req, res) {
     try {
       let cars = await Car.findAll();
@@ -193,7 +190,6 @@ const CarController = {
       return res.status(500).json({ erro: error.message || 'Erro ao buscar carro.' });
     }
   },
-  // Editar um carro
   async update(req, res) {
     const carId = req.params.id;
     const { name, brand, year, gas, color, km, price } = req.body;
@@ -240,8 +236,6 @@ const CarController = {
       return res.status(500).json({ erro: error.message || 'Erro ao atualizar carro.' });
     }
   },
-
-  // Excluir um carro
   async delete(req, res) {
     const carId = req.params.id;
     try {
@@ -256,8 +250,6 @@ const CarController = {
       return res.status(500).json({ erro: error.message || 'Erro ao excluir carro.' });
     }
   },
-
-  // Excluir imagem de carro
   async deleteCarImage(req, res) {
     console.log(req.params);
     const { carId, imageId } = req.params;
