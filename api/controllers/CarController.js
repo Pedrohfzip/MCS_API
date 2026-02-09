@@ -5,6 +5,42 @@ import { Op, where } from 'sequelize';
 
 
 const CarController = {
+    // Buscar carros de um usuário específico pelo uuid
+    async getCarsByUserUuid(req, res) {
+      const { uuid } = req.params;
+      console.log('UUID recebido para busca de carros do usuário:', uuid);
+      if (!uuid) {
+        return res.status(400).json({ erro: 'UUID do usuário é obrigatório.' });
+      }
+      try {
+        const CarsToUser = (await import('../database/models/CarsToUser.js')).default;
+        const carLinks = await CarsToUser.findAll({ where: { userUuid: uuid }, raw: true });
+        if (!carLinks.length) {
+          return res.status(200).json([]);
+        }
+        const carIds = carLinks.map(link => link.carId);
+        const cars = await Car.findAll({ where: { id: carIds } });
+        const images = await CarImage.findAll({ where: { carId: carIds } });
+        // Cria um mapa de imagens por carId
+        const imagesByCarId = images.reduce((acc, img) => {
+          if (!acc[img.carId]) acc[img.carId] = [];
+          acc[img.carId].push(img);
+          return acc;
+        }, {});
+        // Adiciona a propriedade images em cada carro
+        const carsWithImages = cars.map(car => {
+          const carObj = car.toJSON ? car.toJSON() : car;
+          return {
+            ...carObj,
+            images: imagesByCarId[car.id] || []
+          };
+        });
+        return res.status(200).json(carsWithImages);
+      } catch (error) {
+        console.log(error);
+        return res.status(500).json({ erro: error.message || 'Erro ao buscar carros do usuário.' });
+      }
+    },
   // Buscar carros por qualquer campo dinâmico
   async search(req, res) {
       // Suporte a múltiplos filtros: ?name=Corolla&brand=Toyota&year=2022 OU ?data=Corolla Toyota
@@ -98,18 +134,41 @@ const CarController = {
           carId: { [Op.in]: cars.map(car => car.id) }
         }
       });
+      // Busca os vínculos de carros para usuários
+      const CarsToUser = (await import('../database/models/CarsToUser.js')).default;
+      const users = (await import('../database/models/User.js')).default;
+      const carLinks = await CarsToUser.findAll({
+        where: { carId: { [Op.in]: cars.map(car => car.id) } },
+        raw: true
+      });
+      // Mapeia carId para userUuid
+      const carIdToUserUuid = {};
+      carLinks.forEach(link => {
+        carIdToUserUuid[link.carId] = link.userUuid;
+      });
+      // Busca nomes dos usuários
+      const userUuids = [...new Set(carLinks.map(link => link.userUuid))];
+      let userMap = {};
+      if (userUuids.length > 0) {
+        const userList = await users.findAll({ where: { uuid: userUuids }, raw: true });
+        userList.forEach(u => { userMap[u.uuid] = u.name; });
+      }
       // Cria um mapa de imagens por carId
       const imagesByCarId = images.reduce((acc, img) => {
         if (!acc[img.carId]) acc[img.carId] = [];
         acc[img.carId].push(img);
         return acc;
       }, {});
-      // Adiciona a propriedade images em cada carro
+      // Adiciona a propriedade images, userUuid e userName em cada carro
       const carsWithImages = cars.map(car => {
         const carObj = car.toJSON ? car.toJSON() : car;
+        const userUuid = carIdToUserUuid[car.id] || null;
+        const userName = userUuid ? userMap[userUuid] : null;
         return {
           ...carObj,
-          images: imagesByCarId[car.id] || []
+          images: imagesByCarId[car.id] || [],
+          userUuid,
+          userName
         };
       });
       return res.status(200).json(carsWithImages);

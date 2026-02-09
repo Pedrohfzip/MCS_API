@@ -4,12 +4,12 @@ import authMiddleware from "../middlaware/index.js";
 import upload from "../middlaware/uploadImage.js";
 const router = Router();
 
+router.get('/getUserCars/:id', CarController.getCarsByUserUuid);
 router.get('/getAllCars', CarController.getAllCars);
 router.get('/search', CarController.search);
 router.post('/createCar', authMiddleware, upload.array('imagens'), CarController.create);
 router.get('/getCar/:id', CarController.getCarById);
 router.put('/editCar/:id', authMiddleware, upload.array('imagens'), CarController.update);
 router.delete('/deleteCar/:id', authMiddleware, CarController.delete);
-// Excluir imagem de carro por id
 router.delete('/deleteCarImage/:carId/:imageId', authMiddleware, CarController.deleteCarImage);
 export default router;
