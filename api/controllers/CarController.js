@@ -8,6 +8,7 @@ const CarController = {
     // Buscar carros de um usuário específico pelo uuid
     async getCarsByUserUuid(req, res) {
       const { uuid } = req.params;
+      console.log('Requisição para buscar carros do usuário com UUID:', uuid);
       console.log('UUID recebido para busca de carros do usuário:', uuid);
       if (!uuid) {
         return res.status(400).json({ erro: 'UUID do usuário é obrigatório.' });
