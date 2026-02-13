@@ -98,14 +98,14 @@ const CarController = {
     const color = req.body.color;
     const km = req.body.km ? Number(req.body.km) : undefined;
     const price = req.body.price ? Number(req.body.price) : null;
-
-    if (!name || !brand || !year || !gas || !color || km === undefined) {
-      return res.status(400).json({ erro: 'Name, brand, year, gas, color e km são obrigatórios.' });
+    const cityId = req.body.cityId ? Number(req.body.cityId) : null;
+    if (!name || !brand || !year || !gas || !color || km === undefined || !cityId) {
+      return res.status(400).json({ erro: 'Name, brand, year, gas, color, km e cityId são obrigatórios.' });
     }
 
     try {
       // Cria o carro sem foto
-      const novoCarro = await Car.create({ name, brand, year, gas, color, km, price });
+      const novoCarro = await Car.create({ name, brand, year, gas, color, km, price, cityId });
       if (!novoCarro) {
         return res.status(500).json({ erro: 'Erro ao cadastrar carro.' });
       }
