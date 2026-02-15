@@ -39,6 +39,16 @@ const Car = sequelize.define('Car', {
     type: DataTypes.NUMBER,
     allowNull: true,
   },
+  cityId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'cities',
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+  },
 }, {
   tableName: 'cars',
   timestamps: true,

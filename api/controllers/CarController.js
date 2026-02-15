@@ -1,6 +1,6 @@
-
 import Car from '../database/models/Car.js';
 import CarImage from '../database/models/CarImage.js';
+import City from '../database/models/City.js';
 import { Op, where } from 'sequelize';
 
 
@@ -151,22 +151,34 @@ const CarController = {
         const userList = await users.findAll({ where: { uuid: userUuids }, raw: true });
         userList.forEach(u => { userMap[u.uuid] = u.name; });
       }
+      // Buscar cidades relacionadas aos carros
+      const cityIds = [...new Set(cars.map(car => car.cityId).filter(Boolean))];
+      let cityMap = {};
+      if (cityIds.length > 0) {
+        const cities = await City.findAll({ where: { id: cityIds }, raw: true });
+        cities.forEach(city => {
+          cityMap[city.id] = { city: city.city, state: city.state };
+        });
+      }
       // Cria um mapa de imagens por carId
       const imagesByCarId = images.reduce((acc, img) => {
         if (!acc[img.carId]) acc[img.carId] = [];
         acc[img.carId].push(img);
         return acc;
       }, {});
-      // Adiciona a propriedade images, userUuid e userName em cada carro
+      // Adiciona a propriedade images, userUuid, userName, city e state em cada carro
       const carsWithImages = cars.map(car => {
         const carObj = car.toJSON ? car.toJSON() : car;
         const userUuid = carIdToUserUuid[car.id] || null;
         const userName = userUuid ? userMap[userUuid] : null;
+        const cityInfo = car.cityId ? cityMap[car.cityId] : null;
         return {
           ...carObj,
           images: imagesByCarId[car.id] || [],
           userUuid,
-          userName
+          userName,
+          city: cityInfo ? cityInfo.city : null,
+          state: cityInfo ? cityInfo.state : null
         };
       });
       return res.status(200).json(carsWithImages);
