@@ -42,8 +42,8 @@ const CarController = {
       }
   },
   async search(req, res) {
-      // Suporte a múltiplos filtros: ?name=Corolla&brand=Toyota&year=2022 OU ?data=Corolla Toyota
-      const { name, brand, year, data } = req.query;
+      // Suporte a múltiplos filtros: ?name=Corolla&brand=Toyota&year=2022&city=São Paulo OU ?data=Corolla Toyota
+      const { name, brand, year, data, city } = req.query;
       console.log('Parâmetros de busca:', req.query);
       let where = {};
       if (data) {
@@ -59,10 +59,24 @@ const CarController = {
         if (name) where.name = { [Op.iLike]: `%${name}%` };
         if (brand) where.brand = { [Op.iLike]: `%${brand}%` };
         if (year) where.year = Number(year);
-      } else {
+      } else if (!city) {
         return res.status(400).json({ erro: 'Informe pelo menos um filtro.' });
       }
       try {
+        let cityIds = null;
+        if (city) {
+          // Busca cidades que correspondem ao filtro
+          const cities = await City.findAll({
+            where: { city: { [Op.iLike]: `%${city}%` } },
+            attributes: ['id']
+          });
+          cityIds = cities.map(c => c.id);
+          if (!cityIds.length) {
+            // Nenhuma cidade encontrada, retorna vazio
+            return res.status(200).json([]);
+          }
+          where.cityId = { [Op.in]: cityIds };
+        }
         const cars = await Car.findAll({ where });
         // Busca imagens dos carros encontrados
         const images = await CarImage.findAll({
